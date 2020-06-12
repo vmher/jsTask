@@ -1,134 +1,119 @@
-let countries = [];
+(function bindEvents() {
+  getCountries();
+
+  $(window).on("scroll", function () {
+    lazyLoad();
+  });
+
+  $(document).on("input", "#search", function () {
+    search();
+  });
+
+  $(document).on("click", ".up", function () {
+    $(this).vote(); // $('.up').on('click', function(){})-i vaxt chem jogum xi chi ashxatum
+  });
+
+  $(document).on("click", ".down", function () {
+    $(this).vote("down"); // nuyny stex
+  });
+
+  $(document).on("click", ".sort", function () {
+    sort();
+  });
+})();
+
+var countries = [];
 function getCountries() {
-  let url = "https://restcountries.eu/rest/v2/all?fields=name;capital";
   $.ajax({
-    url: url,
+    url: "https://restcountries.eu/rest/v2/all?fields=name;capital",
     method: "get",
     beforeSend: () => {
       $(".loading").addClass("active");
     },
     success: function (resp) {
-      for (let x = 0; x < resp.length; x++) {
-        countries.push(resp[x]);
-        countries[x].vote = 0;
-      }
-      $(".load-more").click();
+      countries = resp.map((item) => ({ ...item, vote: 0 }));
+      loadMore();
     },
     complete: () => {
       $(".loading").removeClass("active");
     },
   });
 }
-getCountries();
 
-// search
-$(document).on("input", "#search", function () {
-  $(".countries").html("");
-  let value = $(this).val().toLowerCase();
-  for (let x = 0; x < countries.length; x++) {
-    if (countries[x].name.toLowerCase().match(value)) {
-      $(".countries").append(
-        `<div class='country'>
-            <div class='info'>
-            <p>country name: <span class='name'>${countries[x].name}</span></p>
-            <p>capital city: <span>${countries[x].capital}</span></p>
-            </div>
-            <div class='votes'>
-            <p>
-                votes <span>${countries[x].vote}</span> <button class='up btn'>&#8679;</button
-                ><button class='down btn'>&#8681;</button>
-            </p>
-            </div>
-        </div>`
-      );
-    }
-  }
-});
-
-// vote +
-$(document).on("click", ".up", function () {
-  if ($(this).parents(".votes").find("span").html() != 30) {
-    let votes = $(this).parents(".votes").find("span").html();
-    votes++;
-    $(this).parents(".votes").find("span").html(votes);
-    let country = countries.find(
-      (x) => x.name == $(this).parents(".country").find(".name").html()
-    );
-    country.vote = votes;
-    // sessionStorage.setItem(country, votes);
-  }
-});
-
-// vote -
-$(document).on("click", ".down", function () {
-  if ($(this).parents(".votes").find("span").html() != 0) {
-    let votes = $(this).parents(".votes").find("span").html();
-    votes--;
-    $(this).parents(".votes").find("span").html(votes);
-    let country = countries.find(
-      (x) => x.name == $(this).parents(".country").find(".name").html()
-    );
-    country.vote = votes;
-    // sessionStorage.setItem(country, votes);
-  }
-});
-
-// sort
-$(".sort").click(function () {
-  countries = countries.filter((country) => country.vote != 0);
-  console.log(Object.keys(sessionStorage));
-  if (countries.length > 1) {
-    countries.sort((a, b) => b.vote - a.vote);
-    console.log(countries);
-    $(".countries").html("");
-    for (let x = 0; x < countries.length; x++) {
-      // var votes = Object.keys(sessionStorage).map(
-      //   (countryName) => countryName == countries[x].name
-      // );
-      // var getValue = sessionStorage.getItem(votes);
-      $(".countries").append(
-        `<div class='country'>
-            <div class='info'>
-            <p>country name: <span class='name'>${countries[x].name}</span></p>
-            <p>capital city: <span>${countries[x].capital}</span></p>
-            </div>
-            <div class='votes'>
-            <p>
-                votes <span>${countries[x].vote}</span> <button class='up btn'>&#8679;</button
-                ><button class='down btn'>&#8681;</button>
-            </p>
-            </div>
-        </div>`
-      );
-    }
-  }
-});
-
-// lazy load
-$(window).on("scroll", function () {
+function lazyLoad() {
   var scrollHeight = $(document).height();
   var scrollPos = $(window).height() + $(window).scrollTop();
   if ((scrollHeight - 300 >= scrollPos) / scrollHeight == 0) {
-    $(".load-more").click();
+    loadMore();
   }
-});
+}
+
+function search() {
+  let value = $("#search").val().toLowerCase();
+  let foundCountries = countries.filter(
+    (country) => country.name.toLowerCase().indexOf(value) > -1
+  );
+  appendCountries(foundCountries);
+}
+
+$.fn.vote = function (up = "up") {
+  var votes = $(this).parents(".votes").find("span").html();
+  var voteSpan = $(this).parents(".votes").find("span");
+  var name = $(this).parents(".country").find(".name").html();
+  var countryName = countries.find((x) => x.name == name);
+  if (up === "up") {
+    votes < 30 ? votes++ : votes; // es pahy chjogeci vonc aveli sirun dnem paymany mekel appendcountries u loadmore-y amusnacnely
+  } else {
+    votes > 0 ? votes-- : votes;
+  }
+  voteSpan.html(votes);
+  countryName.vote = votes;
+};
+
+function sort() {
+  $("#search").val("");
+  let sortedCountries = countries.slice();
+  sortedCountries.sort((a, b) => b.vote - a.vote);
+  appendCountries(sortedCountries);
+}
+
+function appendCountries(countries) {
+  $(".countries").html("");
+  for (let x = 0; x < countries.length; x++) {
+    $(".countries").append(
+      `<div class='country'>
+      <div class='info'>
+          <p>country name: <span class='name'>${countries[x].name}</span></p>
+          <p>capital city: <span>${countries[x].capital}</span></p>
+          </div>
+          <div class='votes'>
+          <p>
+          votes <span>${countries[x].vote}</span> <button class='btn up'>&#8679;</button
+          ><button class='btn down'>&#8681;</button>
+          </p>
+          </div>
+          </div>`
+    );
+  }
+}
+
 var y = 0;
-$(document).on("click", ".load-more", function () {
+function loadMore() {
   for (let x = 0; x < 10; x++) {
     $(".countries").append(
       `<div class='country'>
-            <div class='info'>
-            <p>country name: <span class='name'>${countries[y].name}</span></p>
-            <p>capital city: <span>${countries[y].capital}</span></p>
+      <div class='info'>
+      <p>country name: <span class='name'>${countries[y].name}</span></p>
+      <p>capital city: <span>${countries[y].capital}</span></p>
             </div>
             <div class='votes'>
             <p>
-                votes <span>0</span> <button class='up btn'>&#8679;</button
-                ><button class='down btn'>&#8681;</button>
+            votes <span>${countries[y].vote}</span> <button class='btn up'>&#8679;</button
+            ><button class='btn down'>&#8681;</button>
             </p>
             </div>
-        </div>`
+            </div>`
     );
     y++;
   }
-});
+}
