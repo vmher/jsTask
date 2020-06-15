@@ -1,18 +1,11 @@
+'use strict';
+
 (function (window, $) {
   $.fn.countries = function () {
-    (function bindEvents() {
-      getCountries();
-
-      $(window).on("scroll", lazyLoad);
-
-      $(document).on("input", ".container #search", search);
-
-      $(document).on("click", ".container .btn", vote);
-
-      $(document).on("click", ".container .sort", sort);
-    })();
+    var self = this;
 
     var countries = [];
+
     function getCountries() {
       $.ajax({
         url: "https://restcountries.eu/rest/v2/all?fields=name;capital",
@@ -20,7 +13,7 @@
         beforeSend: () => {
           $(".loading").addClass("active");
         },
-        success: function (resp) {
+        success: (resp) => {
           countries = resp.map((item) => ({ ...item, vote: 0 }));
           loadMore();
         },
@@ -30,9 +23,17 @@
       });
     }
 
+    function bindEvents() {
+      $(window).on('scroll', lazyLoad);
+
+      $(this).find('.search-filter').on('input', search);
+      $(this).on('click', '.btn', vote);
+      $(this).find('.sort').on('click', sort);
+    }
+
     function lazyLoad() {
       var scrollHeight = $(document).height();
-      var scrollPos = $(window).height() + $(window).scrollTop();
+      var scrollPos = $(this).height() + $(this).scrollTop();
       if ((scrollHeight - 300 >= scrollPos) / scrollHeight == 0) {
         loadMore();
       }
@@ -62,54 +63,47 @@
     }
 
     function sort() {
-      $("#search").val("");
+      $(this).val("");
       let sortedCountries = countries.slice();
       sortedCountries.sort((a, b) => b.vote - a.vote);
       appendCountries(sortedCountries);
     }
 
-    function appendCountries(countries) {
-      $(".countries").html("");
-      for (let x = 0; x < countries.length; x++) {
-        $(".countries").append(
+    function appendItem(country) {
+      $(self).find(".countries").append(
           `<div class='country'>
           <div class='info'>
-          <p>country name: <span class='name'>${countries[x].name}</span></p>
-          <p>capital city: <span>${countries[x].capital}</span></p>
+          <p>country name: <span class='name'>${country.name}</span></p>
+          <p>capital city: <span>${country.capital}</span></p>
           </div>
           <div class='votes'>
           <p>
-          votes <span>${countries[x].vote}</span> <button class='btn up'>&#8679;</button
+          votes <span>${country.vote}</span> <button class='btn up'>&#8679;</button
           ><button class='btn down'>&#8681;</button>
           </p>
           </div>
           </div>`
         );
+    }
+
+    function appendCountries(countries) {
+      $(self).find(".countries").html("");
+      for (let x = 0; x < countries.length; x++) {
+        appendItem(countries[x]);
       }
     }
 
     function loadMore() {
       var y = 0;
-      (function inner() {
-        for (let x = 0; x < 10; x++) {
-          $(".countries").append(
-            `<div class='country'>
-            <div class='info'>
-            <p>country name: <span class='name'>${countries[y].name}</span></p>
-            <p>capital city: <span>${countries[y].capital}</span></p>
-            </div>
-            <div class='votes'>
-            <p>
-            votes <span>${countries[y].vote}</span> <button class='btn up'>&#8679;</button
-            ><button class='btn down'>&#8681;</button>
-            </p>
-            </div>
-            </div>`
-          );
-          y++;
-        }
-      })();
+      for (let x = 0; x < 10; x++) {
+        appendItem(countries[y]);
+        y++;
+      }
     }
+
+    getCountries();
+    bindEvents.call(this);
+
+    return $(this);
   };
-  $(this).countries();
 })(window, jQuery);

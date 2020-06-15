@@ -26,7 +26,7 @@ body {
   margin: 30px;
   color: #172121;
 }
-#search {
+.search-filter {
   font-size: 30px;
   border-radius: 10px;
   border: 3px solid #931621;
@@ -36,7 +36,7 @@ body {
   background: #f8f0fb;
   color: #172121;
 }
-#search:focus {
+.search-filter:focus {
   box-shadow: 0 0 12px #9b3d45;
 }
 .country {

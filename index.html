@@ -29,7 +29,7 @@
         <h1>Countries</h1>
       </header>
       <div class="search">
-        <input type="text" name="" id="search" placeholder="find by name" />
+        <input type="text" name="" class="search-filter" placeholder="find by name" />
       </div>
       <div>
         <button class="sort">sort by voted</button>
@@ -43,5 +43,12 @@
       crossorigin="anonymous"
     ></script>
     <script src="./script.js"></script>
+    <script>
+      (function (window, $) {
+          $(document).ready(function () {
+              $('.container').countries();
+          })
+      }(window, jQuery));
+    </script>
   </body>
 </html>
