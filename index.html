@@ -29,7 +29,12 @@
         <h1>Countries</h1>
       </header>
       <div class="search">
-        <input type="text" name="" class="search-filter" placeholder="find by name" />
+        <input
+          type="text"
+          name=""
+          class="search-filter"
+          placeholder="find by name"
+        />
       </div>
       <div>
         <button class="sort">sort by voted</button>
@@ -45,10 +50,13 @@
     <script src="./script.js"></script>
     <script>
       (function (window, $) {
-          $(document).ready(function () {
-              $('.container').countries();
-          })
-      }(window, jQuery));
+        $(document).ready(function () {
+          $(".container").countries({
+            url: "https://restcountries.eu/rest/v2/all?fields=name;capital",
+            limit: 20,
+          });
+        });
+      })(window, jQuery);
     </script>
   </body>
 </html>

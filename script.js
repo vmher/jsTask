@@ -1,14 +1,19 @@
-'use strict';
+"use strict";
 
 (function (window, $) {
-  $.fn.countries = function () {
+  $.fn.countries = function ({
+    limit = 10,
+    url = "https://restcountries.eu/rest/v2/all?fields=name;capital",
+  } = {}) {
     var self = this;
 
     var countries = [];
 
+    var foundCountries = [];
+
     function getCountries() {
       $.ajax({
-        url: "https://restcountries.eu/rest/v2/all?fields=name;capital",
+        url: url,
         method: "get",
         beforeSend: () => {
           $(".loading").addClass("active");
@@ -24,11 +29,11 @@
     }
 
     function bindEvents() {
-      $(window).on('scroll', lazyLoad);
+      $(window).on("scroll", lazyLoad);
 
-      $(this).find('.search-filter').on('input', search);
-      $(this).on('click', '.btn', vote);
-      $(this).find('.sort').on('click', sort);
+      $(this).find(".search-filter").on("input", search);
+      $(this).on("click", ".btn", vote);
+      $(this).find(".sort").on("click", sort);
     }
 
     function lazyLoad() {
@@ -41,13 +46,14 @@
 
     function search() {
       let value = $(this).val().toLowerCase();
-      let foundCountries = countries.filter(
+      foundCountries = countries.filter(
         (country) => country.name.toLowerCase().indexOf(value) > -1
       );
       appendCountries(foundCountries);
+      $(window).off("scroll");
     }
 
-    function vote(evt) {
+    function vote() {
       var votes = +$(this).parents(".votes").find("span").html();
       var voteSpan = $(this).parents(".votes").find("span");
       var name = $(this).parents(".country").find(".name").html();
@@ -63,15 +69,14 @@
     }
 
     function sort() {
-      $(this).val("");
-      let sortedCountries = countries.slice();
+      let sortedCountries = foundCountries.slice();
       sortedCountries.sort((a, b) => b.vote - a.vote);
       appendCountries(sortedCountries);
     }
 
     function appendItem(country) {
       $(self).find(".countries").append(
-          `<div class='country'>
+        `<div class='country'>
           <div class='info'>
           <p>country name: <span class='name'>${country.name}</span></p>
           <p>capital city: <span>${country.capital}</span></p>
@@ -83,7 +88,7 @@
           </p>
           </div>
           </div>`
-        );
+      );
     }
 
     function appendCountries(countries) {
@@ -95,7 +100,7 @@
 
     function loadMore() {
       var y = 0;
-      for (let x = 0; x < 10; x++) {
+      for (let x = 0; x < limit; x++) {
         appendItem(countries[y]);
         y++;
       }
