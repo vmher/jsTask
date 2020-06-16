@@ -20,10 +20,14 @@
         },
         success: (resp) => {
           countries = resp.map((item) => ({ ...item, vote: 0 }));
-          loadMore();
+          foundCountries = countries;
         },
         complete: () => {
           $(".loading").removeClass("active");
+          if (location.reload) {
+            getFromStorage();
+            loadMore();
+          }
         },
       });
     }
@@ -66,6 +70,18 @@
       }
       voteSpan.html(votes);
       countryName.vote = votes;
+      sessionStorage.setItem(countryName.name, votes);
+    }
+
+    function getFromStorage() {
+      let keys = Object.keys(sessionStorage);
+      for (let x = 0; x < keys.length; x++) {
+        for (let y = 0; y < countries.length; y++) {
+          if (countries[y].name == keys[x]) {
+            countries[y].vote = sessionStorage.getItem(keys[x]);
+          }
+        }
+      }
     }
 
     function sort() {
