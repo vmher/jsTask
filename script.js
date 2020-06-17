@@ -11,6 +11,8 @@
 
     var foundCountries = [];
 
+    var y = 0;
+
     function getCountries() {
       $.ajax({
         url: url,
@@ -20,14 +22,14 @@
         },
         success: (resp) => {
           countries = resp.map((item) => ({ ...item, vote: 0 }));
-          foundCountries = countries;
         },
         complete: () => {
           $(".loading").removeClass("active");
-          if (location.reload) {
+          if (sessionStorage.getItem("countries")) {
             getFromStorage();
-            loadMore();
           }
+          loadMore();
+          foundCountries = countries;
         },
       });
     }
@@ -70,18 +72,12 @@
       }
       voteSpan.html(votes);
       countryName.vote = votes;
-      sessionStorage.setItem(countryName.name, votes);
+      var countriesString = JSON.stringify(countries);
+      sessionStorage.setItem("countries", countriesString);
     }
 
     function getFromStorage() {
-      let keys = Object.keys(sessionStorage);
-      for (let x = 0; x < keys.length; x++) {
-        for (let y = 0; y < countries.length; y++) {
-          if (countries[y].name == keys[x]) {
-            countries[y].vote = sessionStorage.getItem(keys[x]);
-          }
-        }
-      }
+      countries = JSON.parse(sessionStorage.getItem("countries"));
     }
 
     function sort() {
@@ -115,7 +111,6 @@
     }
 
     function loadMore() {
-      var y = 0;
       for (let x = 0; x < limit; x++) {
         appendItem(countries[y]);
         y++;
